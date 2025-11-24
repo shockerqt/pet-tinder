@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Heart, X, MessageCircle, User, Zap } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Heart, X, MessageCircle, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
 import { pets } from '../data/pets';
@@ -7,6 +7,7 @@ import { pets } from '../data/pets';
 export default function Swipe() {
     const navigate = useNavigate();
     const [cards, setCards] = useState(pets);
+    const cardRef = useRef(null);
 
     const handleSwipe = (direction, id) => {
         console.log(`Swiped ${direction} on ${id}`);
@@ -14,6 +15,12 @@ export default function Swipe() {
         setTimeout(() => {
             setCards((prev) => prev.filter((card) => card.id !== id));
         }, 200);
+    };
+
+    const triggerSwipe = (direction) => {
+        if (cardRef.current) {
+            cardRef.current.swipe(direction);
+        }
     };
 
     return (
@@ -38,13 +45,21 @@ export default function Swipe() {
                         cards.map((pet, index) => (
                             <Card
                                 key={pet.id}
+                                ref={index === 0 ? cardRef : null}
                                 pet={pet}
                                 onSwipe={handleSwipe}
                                 style={{
                                     zIndex: cards.length - index,
+                                }}
+                                animate={{
                                     scale: index === 0 ? 1 : 0.95,
                                     y: index === 0 ? 0 : 10 * index,
                                     opacity: index < 2 ? 1 : 0
+                                }}
+                                transition={{
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 20
                                 }}
                             />
                         ))
@@ -68,19 +83,18 @@ export default function Swipe() {
 
             {/* Controls */}
             {cards.length > 0 && (
-                <div className="h-24 flex items-center justify-center gap-6 pb-6">
+                <div className="h-24 flex items-center justify-center gap-8 pb-6">
                     <button
-                        className="w-14 h-14 bg-white rounded-full shadow-lg text-red-500 flex items-center justify-center hover:scale-110 transition-transform border border-gray-100"
+                        onClick={() => triggerSwipe('left')}
+                        className="w-16 h-16 bg-white rounded-full shadow-lg text-red-500 flex items-center justify-center hover:scale-110 transition-transform border border-gray-100 cursor-pointer"
                     >
-                        <X size={28} strokeWidth={3} />
-                    </button>
-                    <button className="w-10 h-10 bg-white rounded-full shadow text-blue-400 flex items-center justify-center hover:scale-110 transition-transform border border-gray-100">
-                        <Zap size={20} fill="currentColor" />
+                        <X size={32} strokeWidth={3} />
                     </button>
                     <button
-                        className="w-14 h-14 bg-white rounded-full shadow-lg text-green-500 flex items-center justify-center hover:scale-110 transition-transform border border-gray-100"
+                        onClick={() => triggerSwipe('right')}
+                        className="w-16 h-16 bg-white rounded-full shadow-lg text-green-500 flex items-center justify-center hover:scale-110 transition-transform border border-gray-100 cursor-pointer"
                     >
-                        <Heart size={28} strokeWidth={3} fill="currentColor" className="text-green-500" />
+                        <Heart size={32} strokeWidth={3} fill="currentColor" className="text-green-500" />
                     </button>
                 </div>
             )}
